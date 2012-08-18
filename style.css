@@ -1,0 +1,43 @@
+
+.permission_button { display: none; }
+
+.status_blob {
+    float: left;
+    margin-right: 5px;
+    width: 15px;
+    height: 15px;
+    background-color: red;
+}
+
+.debug_output {
+    background-color: rgba(220, 220, 220, 1.00);
+    width: 200px;
+    height: 300px;
+    overflow: auto;
+}
+
+.header {
+    background-color: rgba(220, 220, 220, 1.00);
+    margin-bottom: 5px;
+    width: 200px;
+    height: 20px;
+}
+
+.inner_header {
+    position: relative;
+    top: 2px;
+    margin-top: -7.5px;
+    margin: 5px;
+    height: 15px;
+}
+
+.content_container {
+    left: 50%;
+    position: relative;
+    top: 100px;
+    width: 200px;
+    margin-left: -100px;
+    background-color: #B6B6B6;
+}
+
+.inline_button { top: -2px; position: relative; }
