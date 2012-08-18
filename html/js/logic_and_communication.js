@@ -34,7 +34,7 @@ if (window.webkitNotifications && window.webkitNotifications.checkPermission() =
 
     ws.onopen = function() {
         append_debug_div('Port opened...!');
-        ws.send("port_thoroughput_test;"+generate_guid());
+        ws.send("port_thoroughput_test;"+uuid.v4());
         $('.status_blob').css('background-color', 'green');
     };
     
@@ -81,13 +81,11 @@ if (window.webkitNotifications && window.webkitNotifications.checkPermission() =
         notifications.push([notif_instance, Date.now()]);
 
         notifications[notifications.length-1][0].ondisplay = function() {
-            // console.log('on display function executed!');
             setTimeout(function (){
                 notifications[0][0].close();
                 if (notifications.length !== 0){
                     notifications.splice(0,1);
                 }
-                // console.log(notifications);
                 console.log('closing notification');
             }, notification_duration);
         };
