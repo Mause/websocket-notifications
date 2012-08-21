@@ -35,14 +35,24 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
         print "connection established", self.client_address
         self.handshake_done = False
 
+    def send_notif_to_client(self):
+        print 'notification pusher started'
+        while hasattr(self, 'client_guid') == False:
+            pass
+        if self.client_guid not in notif_q:
+            notif_q[self.client_guid] = []
+            print 'no entry for this client in the notif dict'
+        while True:
+            while len(notif_q[self.client_guid]) != 0:
+                print 'sending notification'
+                self.send_message(notif_q[self.client_guid][0])
+                notif_q[self.client_guid].pop(0)
+
     def handle(self):
         while not halt:
             if not self.handshake_done:
                 self.handshake()
             else:
-                while not notif_q.empty():
-                    print 'sending notification'
-                    self.send_message(notif_q.get())
                 self.read_next_message()
 
     def read_next_message(self):
@@ -84,6 +94,8 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
         response += 'Connection: Upgrade\r\n'
         response += 'Sec-WebSocket-Accept: %s\r\n\r\n' % digest
         self.handshake_done = self.request.send(response)
+        if self.handshake_done:
+            create_new_thread(target=self.send_notif_to_client).start()
 
     def on_message(self, message):
         if message != 'ping' and message[:21] != 'port_thoroughput_test':
@@ -92,7 +104,11 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
             self.client_guid = message[22:]
             print 'client guid is', self.client_guid
             if self.client_guid != '':
-                client_list.append(self.client_guid)
+                if len(client_dict) != 0:
+                    pos = int(client_dict.keys()[0]) + 1
+                else:
+                    pos = 0
+                client_dict[str(pos)] = self.client_guid
             self.send_message('port_thoroughput_test_confirmation' + self.client_guid)
         elif message == 'ping':
             self.send_message('pong')
@@ -102,6 +118,7 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
 
 def handler(clientsocket, clientaddr):
     print 'control server started'
+    global client_dict
     data = ''
     global halt
     while not halt:
@@ -118,20 +135,27 @@ def handler(clientsocket, clientaddr):
                 clientsocket.close()
                 sys.exit(0)
             elif '~' in data:
-                clientsocket.send('Creating new notification; ' + str(data))
-                notif_q.put(data)
+                if len(client_dict) == 0:
+                    print 'No clients connected!'
+                elif str(data.split(':')[0]) in client_dict.keys():
+                    clientsocket.send('Creating new notification; ' + str(data))
+                    if client_dict[str(data.split(':')[0])] not in notif_q:
+                        notif_q[client_dict[str(data.split(':')[0])]] = []
+                        print 'no entry for this client in the notif dict'
+
+                    notif_q[client_dict[str(data.split(':')[0])]].append(''.join(data.split(':')[1:]))
+                else:
+                    clientsocket.send('Could not find that client')
+                    print 'could not find client', data.split(':')[0]
                 # server.send_message(data)
             elif data[:3] == 'py;':
                 exec(data[3:])
                 clientsocket.send('Done')
             elif '/clients' in data:
-                print 'sending client_list to control client'
-                clientsocket.send(str(client_list))
-            elif 'queue_test' in data:
-                print notif_q.queue
-                print notif_q.put('h')
-                print notif_q.queue[0]
-                clientsocket.send('Done')
+                print 'sending client_dict to control client'
+                clientsocket.send(str(client_dict))
+            elif '/notifs' in data:
+                clientsocket.send(str(notif_q))
             else:
                 clientsocket.send('What do i do?')
     clientsocket.close()
@@ -158,10 +182,11 @@ if __name__ == "__main__":
     print 'Started up'
 
     global notif_q
-    notif_q = Queue.Queue()
+    # notif_q = Queue.Queue()
+    notif_q = {}
 
-    global client_list
-    client_list = list()
+    global client_dict
+    client_dict = dict()
 
     global halt
     halt = False
@@ -169,7 +194,7 @@ if __name__ == "__main__":
     # setup weksocket server :DSocketServer.TCPServer
     # print help(ThreadedTCPServer.__init__)
     server = ThreadedTCPServer(("", 9999), WebSocketsHandler)
-    server.notif_q = notif_q
+    # server.notif_q = notif_q
     server_thread = create_new_thread(target=server.serve_forever)
     # Exit the server thread when the main thread terminates
     server_thread.daemon = True
