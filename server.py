@@ -176,7 +176,9 @@ def dispatch_control():
             break
         # thread.start_new_thread(handler, (clientsocket, clientaddr, server))
         print 'starting new control server'
-        Thread(target=handler, args=(clientsocket, clientaddr)).start()
+        cur_thread = Thread(target=handler, args=(clientsocket, clientaddr))
+        cur_thread.daemon = True
+        cur_thread.start()
     serversocket.close()
 
 
@@ -200,4 +202,6 @@ if __name__ == "__main__":
 
     # setup control server
 
-    dispatch = Thread(target=dispatch_control, args=()).start()
+    dispatch = Thread(target=dispatch_control, args=())
+    dispatch.daemon = True
+    dispatch.start()
