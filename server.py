@@ -11,13 +11,16 @@
 
 
 import struct
-import Queue
-from threading import Thread as create_new_thread
+# import Queue
+from threading import Thread
 import sys
 import socket
 import SocketServer
 from base64 import b64encode
-from hashlib import sha1
+try:
+    from hashlib import sha1
+except ImportError:
+    from sha import sha as sha1
 from mimetools import Message
 from StringIO import StringIO
 
@@ -95,7 +98,7 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
         response += 'Sec-WebSocket-Accept: %s\r\n\r\n' % digest
         self.handshake_done = self.request.send(response)
         if self.handshake_done:
-            create_new_thread(target=self.send_notif_to_client).start()
+            Thread(target=self.send_notif_to_client).start()
 
     def on_message(self, message):
         if message != 'ping' and message[:21] != 'port_thoroughput_test':
@@ -174,7 +177,7 @@ def dispatch_control():
             break
         # thread.start_new_thread(handler, (clientsocket, clientaddr, server))
         print 'starting new control server'
-        create_new_thread(target=handler, args=(clientsocket, clientaddr)).start()
+        Thread(target=handler, args=(clientsocket, clientaddr)).start()
     serversocket.close()
 
 
@@ -195,7 +198,7 @@ if __name__ == "__main__":
     # print help(ThreadedTCPServer.__init__)
     server = ThreadedTCPServer(("", 9999), WebSocketsHandler)
     # server.notif_q = notif_q
-    server_thread = create_new_thread(target=server.serve_forever)
+    server_thread = Thread(target=server.serve_forever)
     # Exit the server thread when the main thread terminates
     server_thread.daemon = True
     server_thread.start()
@@ -205,4 +208,4 @@ if __name__ == "__main__":
     # server_instance = server.serve_forever()
     print 'execution continues...'
     # print dir(server_thread)
-    dispatch = create_new_thread(target=dispatch_control, args=()).start()  # notif_q
+    dispatch = Thread(target=dispatch_control, args=()).start()  # notif_q
