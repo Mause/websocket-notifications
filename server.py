@@ -11,7 +11,7 @@
 
 
 import struct
-# import Queue
+import Queue
 from threading import Thread
 import sys
 import socket
@@ -43,13 +43,12 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
         while hasattr(self, 'client_guid') == False:
             pass
         if self.client_guid not in notif_q:
-            notif_q[self.client_guid] = []
+            notif_q[self.client_guid] = Queue.Queue()
             print 'no entry for this client in the notif dict'
         while True:
-            while len(notif_q[self.client_guid]) != 0:
+            while not notif_q[self.client_guid].empty():
                 print 'sending notification'
-                self.send_message(notif_q[self.client_guid][0])
-                notif_q[self.client_guid].pop(0)
+                self.send_message(notif_q[self.client_guid].get())
 
     def handle(self):
         while not halt:
@@ -143,10 +142,10 @@ def handler(clientsocket, clientaddr):
                 elif str(data.split(':')[0]) in client_dict.keys():
                     clientsocket.send('Creating new notification; ' + str(data))
                     if client_dict[str(data.split(':')[0])] not in notif_q:
-                        notif_q[client_dict[str(data.split(':')[0])]] = []
+                        notif_q[client_dict[str(data.split(':')[0])]] = Queue.Queue()
                         print 'no entry for this client in the notif dict'
 
-                    notif_q[client_dict[str(data.split(':')[0])]].append(''.join(data.split(':')[1:]))
+                    notif_q[client_dict[str(data.split(':')[0])]].put(''.join(data.split(':')[1:]))
                 else:
                     clientsocket.send('Could not find that client')
                     print 'could not find client', data.split(':')[0]
@@ -158,7 +157,7 @@ def handler(clientsocket, clientaddr):
                 print 'sending client_dict to control client'
                 clientsocket.send(str(client_dict))
             elif '/notifs' in data:
-                clientsocket.send(str(notif_q))
+                clientsocket.send(str(notif_q.queue))
             else:
                 clientsocket.send('What do i do?')
     clientsocket.close()
@@ -185,7 +184,6 @@ if __name__ == "__main__":
     print 'Started up'
 
     global notif_q
-    # notif_q = Queue.Queue()
     notif_q = {}
 
     global client_dict
@@ -194,18 +192,12 @@ if __name__ == "__main__":
     global halt
     halt = False
 
-    # setup weksocket server :DSocketServer.TCPServer
-    # print help(ThreadedTCPServer.__init__)
-    server = ThreadedTCPServer(("", 9999), WebSocketsHandler)
-    # server.notif_q = notif_q
-    server_thread = Thread(target=server.serve_forever)
+    websocket_server = ThreadedTCPServer(("", 9999), WebSocketsHandler)
+    websocket_server_thread = Thread(target=websocket_server.serve_forever)
     # Exit the server thread when the main thread terminates
-    server_thread.daemon = True
-    server_thread.start()
+    websocket_server_thread.daemon = True
+    websocket_server_thread.start()
 
     # setup control server
 
-    # server_instance = server.serve_forever()
-    print 'execution continues...'
-    # print dir(server_thread)
-    dispatch = Thread(target=dispatch_control, args=()).start()  # notif_q
+    dispatch = Thread(target=dispatch_control, args=()).start()
