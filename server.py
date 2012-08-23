@@ -17,12 +17,16 @@ import sys
 import socket
 import SocketServer
 from base64 import b64encode
+from mimetools import Message
+from StringIO import StringIO
 try:
     from hashlib import sha1
 except ImportError:
     from sha import sha as sha1
-from mimetools import Message
-from StringIO import StringIO
+try:
+    import json
+except ImportError:
+    import simplejson as json
 
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
@@ -164,10 +168,9 @@ def handler(clientsocket, clientaddr):
                 clientsocket.send('Done')
             elif '/clients' in data:
                 print 'sending client_dict to control client'
-                clientsocket.send(str(client_dict))
+                clientsocket.send(json.dumps(client_dict))
             elif '/notifs' in data:
-                clientsocket.send(str(
-                    [notif_q[x].queue for x in notif_q.keys()]))
+                clientsocket.send(str([notif_q[x].queue for x in notif_q.keys()]))
             else:
                 clientsocket.send('What do i do?')
     clientsocket.close()
