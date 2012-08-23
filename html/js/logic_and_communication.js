@@ -30,7 +30,14 @@ if (window.webkitNotifications && window.webkitNotifications.checkPermission() =
 
     console.log('We have permission from the user to display notifications');
 
-    ws = new WebSocket("ws://localhost:9999/");
+    if (typeof(host) === undefined){
+        host = 'localhost';
+    }
+    if (typeof(port) === undefined){
+        port = 9999;
+    }
+    ws = new WebSocket("ws://"+host+":"+port+"/");
+    append_debug_div('Connecting...');
 
     ws.onopen = function() {
         append_debug_div('Port opened...!');

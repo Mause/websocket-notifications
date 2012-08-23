@@ -146,6 +146,13 @@ def handler(clientsocket, clientaddr):
                         print 'no entry for this client in the notif dict'
 
                     notif_q[client_dict[str(data.split(':')[0])]].put(''.join(data.split(':')[1:]))
+                elif str(data.split(':')[0]) == 'a':
+                    clientsocket.send('Creating new notifications; ' + str(data))
+                    for client in range(len(client_dict.keys())):
+                        if client_dict[str(client)] not in notif_q:
+                            notif_q[client_dict[str(client)]] = Queue.Queue()
+                            print 'no entry for this client in the notif dict'
+                        notif_q[client_dict[str(client)]].put(''.join(data.split(':')[1:]))
                 else:
                     clientsocket.send('Could not find that client')
                     print 'could not find client', data.split(':')[0]
@@ -203,5 +210,5 @@ if __name__ == "__main__":
     # setup control server
 
     dispatch = Thread(target=dispatch_control, args=())
-    dispatch.daemon = True
+    # dispatch.daemon = True
     dispatch.start()
