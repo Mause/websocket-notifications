@@ -2,3 +2,6 @@ websocket-notifications
 =======================
 
 Moderately simple websocket and python based webkit notifications pusher "system"
+
+* Remake debug checkbox, enabled or disables debug output
+* also, make sure that when debugging is not enable that the debug div is not visible
