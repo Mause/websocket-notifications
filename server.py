@@ -44,7 +44,6 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
             pass
         if self.client_guid not in notif_q:
             notif_q[self.client_guid] = Queue.Queue()
-            print 'no entry for this client in the notif dict'
         while True:
             while not notif_q[self.client_guid].empty():
                 print 'sending notification'
@@ -118,6 +117,14 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
             self.send_message(message)
 
 
+def add_notif_to_q(notif, client):
+    print 'client is', client_dict[str(client)]
+    print 'notification is', notif
+    if client_dict[str(client)] not in notif_q:
+        notif_q[client_dict[str(client)]] = Queue.Queue()
+    notif_q[client_dict[str(client)]].put(notif)
+
+
 def handler(clientsocket, clientaddr):
     print 'control server started'
     global client_dict
@@ -141,18 +148,13 @@ def handler(clientsocket, clientaddr):
                     print 'No clients connected!'
                 elif str(data.split(':')[0]) in client_dict.keys():
                     clientsocket.send('Creating new notification; ' + str(data))
-                    if client_dict[str(data.split(':')[0])] not in notif_q:
-                        notif_q[client_dict[str(data.split(':')[0])]] = Queue.Queue()
-                        print 'no entry for this client in the notif dict'
+                    add_notif_to_q(''.join(data.split(':')[1:]), str(data.split(':')[0]))
 
-                    notif_q[client_dict[str(data.split(':')[0])]].put(''.join(data.split(':')[1:]))
                 elif str(data.split(':')[0]) == 'a':
                     clientsocket.send('Creating new notifications; ' + str(data))
                     for client in range(len(client_dict.keys())):
-                        if client_dict[str(client)] not in notif_q:
-                            notif_q[client_dict[str(client)]] = Queue.Queue()
-                            print 'no entry for this client in the notif dict'
-                        notif_q[client_dict[str(client)]].put(''.join(data.split(':')[1:]))
+                        add_notif_to_q(''.join(data.split(':')[1:]), client)
+
                 else:
                     clientsocket.send('Could not find that client')
                     print 'could not find client', data.split(':')[0]
@@ -164,7 +166,8 @@ def handler(clientsocket, clientaddr):
                 print 'sending client_dict to control client'
                 clientsocket.send(str(client_dict))
             elif '/notifs' in data:
-                clientsocket.send(str(notif_q.queue))
+                clientsocket.send(str(
+                    [notif_q[x].queue for x in notif_q.keys()]))
             else:
                 clientsocket.send('What do i do?')
     clientsocket.close()

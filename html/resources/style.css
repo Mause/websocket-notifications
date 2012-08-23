@@ -14,6 +14,7 @@
     width: 200px;
     height: 300px;
     overflow: auto;
+    display: none;
 }
 
 .header {
@@ -41,3 +42,4 @@
 }
 
 .inline_button { top: -2px; position: relative; }
+.debug_checkbox { margin-left: 10px; }
