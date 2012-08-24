@@ -14,6 +14,7 @@
 **/
 
 
+
 if (window.webkitNotifications && window.webkitNotifications.checkPermission() === 0) { // 0 is PERMISSION_ALLOWED
 
     // some preferences
@@ -28,7 +29,7 @@ if (window.webkitNotifications && window.webkitNotifications.checkPermission() =
         $('#debug_output_div_' + debug_divs)[0].scrollIntoView( true );
     };
 
-    console.log('We have permission from the user to display notifications');
+    // console.log('We have permission from the user to display notifications');
 
     if (typeof(host) === undefined){
         host = 'localhost';
@@ -45,31 +46,33 @@ if (window.webkitNotifications && window.webkitNotifications.checkPermission() =
         $('.status_blob').css('background-color', 'green');
     };
     
-
     ws.onmessage = function (e) {
         if (e.data === 'pong') {
             $('.status_blob').css('background-color', 'green');
-        } else if (e.data.search('~')!=-1){
-            console.log('notification '+e.data);
-            notification_test = createNotificationInstance({
-                notificationType: 'simple',
-                icon: e.data.split('~')[0],
-                title: e.data.split('~')[1],
-                content: e.data.split('~')[2]
-            });
-            show_notification_in_time(notification_test);
-
         } else if (e.data.substring(0,34) === "port_thoroughput_test_confirmation"){
             guid = e.data.substring(35,e.data.length);
-            console.log('hey! i think i am client '+guid);
+            console.log('thoroughput test completed; '+guid);
             notif_instance = createNotificationInstance({
                 'notificationType':'simple',
                 'icon':'',
                 'title':'Connection Obtained',
                 'content':''});
             show_notification_in_time(notif_instance);
+
         } else {
-            append_debug_div('Data; '+e.data);
+            console.log('notification '+e.data);
+            data = $.parseJSON(e.data);
+            // icon = (if data['icon'] != '' data.icon);
+            notification_test = createNotificationInstance({
+                notificationType: 'simple',
+                // icon: e.data.split('~')[0],
+                // title: e.data.split('~')[1],
+                // content: e.data.split('~')[2]
+                icon: data.icon,
+                title: data.title,
+                content: data.content
+            });
+            show_notification_in_time(notification_test);
         }
     };
     

@@ -3,6 +3,7 @@
 #
 # Project: Websocket webkit notification pusher
 # Component: server end application logic
+#
 # Authors: Dominic May;
 #          Lord_DeathMatch;
 #          Mause
@@ -10,10 +11,11 @@
 # Description: a simple javascript and websocket notification push service
 
 
+import subprocess
 import struct
 import Queue
 from threading import Thread
-import sys
+# import sys
 import socket
 import SocketServer
 from base64 import b64encode
@@ -43,14 +45,12 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
         self.handshake_done = False
 
     def send_notif_to_client(self):
-        print 'notification pusher started'
         while hasattr(self, 'client_guid') == False:
             pass
         if self.client_guid not in notif_q:
             notif_q[self.client_guid] = Queue.Queue()
         while True:
-            while not notif_q[self.client_guid].empty():
-                print 'sending notification'
+            while len(notif_q[self.client_guid].queue) != 0:
                 self.send_message(notif_q[self.client_guid].get())
 
     def handle(self):
@@ -104,7 +104,7 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
 
     def on_message(self, message):
         if message != 'ping' and message[:21] != 'port_thoroughput_test':
-            print 'data;', message
+            print 'received from client;', message
         if message[:21] == 'port_thoroughput_test':
             self.client_guid = message[22:]
             print 'client guid is', self.client_guid
@@ -122,11 +122,18 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
 
 
 def add_notif_to_q(notif, client):
-    print 'client is', client_dict[str(client)]
-    print 'notification is', notif
     if client_dict[str(client)] not in notif_q:
         notif_q[client_dict[str(client)]] = Queue.Queue()
-    notif_q[client_dict[str(client)]].put(notif)
+    notif_q[client_dict[str(client)]].put(json.dumps(notif))
+
+
+def remove_item_from_dict(dictionary, item):
+    to_output = {}
+    for item in dictionary.keys():
+        # item = item.encode('ascii')
+        if item != 'client':
+            to_output[item] = dictionary[item]
+    return to_output
 
 
 def handler(clientsocket, clientaddr):
@@ -142,37 +149,36 @@ def handler(clientsocket, clientaddr):
             break
         if data:
             print 'data;', data
-            if data[:8] == 'shutdown':
-                # break
-                halt = True
-                clientsocket.close()
-                sys.exit(0)
-            elif '~' in data:
-                if len(client_dict) == 0:
-                    print 'No clients connected!'
-                elif str(data.split(':')[0]) in client_dict.keys():
-                    clientsocket.send('Creating new notification; ' + str(data))
-                    add_notif_to_q(''.join(data.split(':')[1:]), str(data.split(':')[0]))
 
-                elif str(data.split(':')[0]) == 'a':
-                    clientsocket.send('Creating new notifications; ' + str(data))
-                    for client in range(len(client_dict.keys())):
-                        add_notif_to_q(''.join(data.split(':')[1:]), client)
-
-                else:
-                    clientsocket.send('Could not find that client')
-                    print 'could not find client', data.split(':')[0]
-                # server.send_message(data)
-            elif data[:3] == 'py;':
-                exec(data[3:])
-                clientsocket.send('Done')
-            elif '/clients' in data:
+            if '/clients' in data:
                 print 'sending client_dict to control client'
                 clientsocket.send(json.dumps(client_dict))
+
             elif '/notifs' in data:
-                clientsocket.send(str([notif_q[x].queue for x in notif_q.keys()]))
+                clientsocket.send(json.dumps([{x:map(None, notif_q[x].queue)} for x in notif_q.keys()][0]))
+
             else:
-                clientsocket.send('What do i do?')
+                data = json.loads(data)
+                print 'json data;', data
+                if len(client_dict) == 0:
+                    clientsocket.send('error_no_clients_connected')
+                    print 'error_no_clients_connected'
+
+                elif str(data['client']) in client_dict.keys():
+                    add_notif_to_q(remove_item_from_dict(data, 'client'), str(data['client']))
+                    clientsocket.send('success')
+                    print 'success'
+
+                elif str(data['client']) == 'a':
+                    for client in range(len(client_dict.keys())):
+                        add_notif_to_q(remove_item_from_dict(data, 'client'), client)
+                    clientsocket.send('success')
+                    print 'success'
+
+                else:
+                    clientsocket.send('error_no_such_client')
+                    print 'could not find client', data.split(':')[0]
+
     clientsocket.close()
 
 
@@ -196,7 +202,9 @@ def dispatch_control():
 
 
 if __name__ == "__main__":
-    print 'Started up'
+
+    print 'Websocket Notifications version %s' % str(subprocess.Popen(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE, shell=True).communicate()[0])[:7]
+    print 'Written by Dominic May'
 
     global notif_q
     notif_q = {}
