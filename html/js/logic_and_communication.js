@@ -17,6 +17,15 @@
 
 if (window.webkitNotifications && window.webkitNotifications.checkPermission() === 0) { // 0 is PERMISSION_ALLOWED
 
+
+    $('.debug_checkbox').click(function () {
+        if ($('#debugCheckbox').is(":checked")){
+            $('.debug_output').show();
+        } else {
+            $('.debug_output').hide();
+        }
+    });
+
     // some preferences
     ping_interval = 10000;
     notification_duration = 3000;
