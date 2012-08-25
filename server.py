@@ -148,7 +148,6 @@ def handler(clientsocket, clientaddr):
             print 'shutting down control server'
             break
         if data:
-            print 'data;', data
 
             if '/clients' in data:
                 print 'sending client_dict to control client'
@@ -159,7 +158,6 @@ def handler(clientsocket, clientaddr):
 
             else:
                 data = json.loads(data)
-                print 'json data;', data
                 if len(client_dict) == 0:
                     clientsocket.send('error_no_clients_connected')
                     print 'error_no_clients_connected'
