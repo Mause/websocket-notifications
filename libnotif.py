@@ -79,9 +79,19 @@ def quick_send(title, client='a', content='', icon=''):
 if __name__ == '__main__':
     conn = NotifConn('localhost', 50012)
     conn.connect()
-    print 'requesting clients...'
+    print 'Clients;',
     print conn.request_clients()
-    conn.send_notif('Hello world', client='0')
+    message = True
+    try:
+        while message != '':
+            message = raw_input('Message? ')
+            conn.send_notif(str(message))
+    except:
+        if conn.connected:
+            conn.disconnect()
+    finally:
+        if conn.connected:
+            conn.disconnect()
     # print conn.request_notifs()
     conn.disconnect()
 
