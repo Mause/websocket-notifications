@@ -11,6 +11,7 @@
 # Description: A ridiculously simple method of controlling the notifications system programmatically
 
 
+import time
 from socket import *
 try:
     import json
@@ -79,6 +80,9 @@ def quick_send(title, client='a', content='', icon=''):
 if __name__ == '__main__':
     conn = NotifConn('localhost', 50012)
     conn.connect()
+    print 'Waiting for clients...'
+    while len(conn.request_clients()) == 0:
+        time.sleep(1)
     print 'Clients;',
     print conn.request_clients()
     message = True
@@ -92,22 +96,4 @@ if __name__ == '__main__':
     finally:
         if conn.connected:
             conn.disconnect()
-    # print conn.request_notifs()
     conn.disconnect()
-
-
-# elif '~' in data:
-#     if len(client_dict) == 0:
-#         print 'No clients connected!'
-#     elif str(data.split(':')[0]) in client_dict.keys():
-#         clientsocket.send('Creating new notification; ' + str(data))
-#         add_notif_to_q(''.join(data.split(':')[1:]), str(data.split(':')[0]))
-
-#     elif str(data.split(':')[0]) == 'a':
-#         clientsocket.send('Creating new notifications; ' + str(data))
-#         for client in range(len(client_dict.keys())):
-#             add_notif_to_q(''.join(data.split(':')[1:]), client)
-
-#     else:
-#         clientsocket.send('Could not find that client')
-#         print 'could not find client', data.split(':')[0]
