@@ -11,11 +11,10 @@
 # Description: a simple javascript and websocket notification push service
 
 
-import subprocess
+import version
 import struct
 import Queue
 from threading import Thread
-# import sys
 import socket
 import SocketServer
 from base64 import b64encode
@@ -137,7 +136,6 @@ def remove_item_from_dict(dictionary, item):
 
 
 def handler(clientsocket, clientaddr):
-    print 'control server started'
     global client_dict
     data = ''
     global halt
@@ -148,7 +146,6 @@ def handler(clientsocket, clientaddr):
             print 'shutting down control server'
             break
         if data:
-
             if '/clients' in data:
                 print 'sending client_dict to control client'
                 clientsocket.send(json.dumps(client_dict))
@@ -191,7 +188,6 @@ def dispatch_control():
         except KeyboardInterrupt:
             print 'shutting down control dispatch server'
             break
-        # thread.start_new_thread(handler, (clientsocket, clientaddr, server))
         print 'starting new control server'
         cur_thread = Thread(target=handler, args=(clientsocket, clientaddr))
         cur_thread.daemon = True
@@ -200,8 +196,8 @@ def dispatch_control():
 
 
 if __name__ == "__main__":
-
-    print 'Websocket Notifications version %s' % str(subprocess.Popen(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE, shell=True).communicate()[0])[:7]
+    version_string = version.get_version()
+    print 'Websocket Notifications version %s' % version_string
     print 'Written by Dominic May'
 
     global notif_q
