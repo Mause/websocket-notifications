@@ -196,8 +196,7 @@ def dispatch_control():
 
 
 if __name__ == "__main__":
-    version_string = version.get_version()
-    print 'Websocket Notifications version %s' % version_string
+    print 'Websocket Notifications version %s' % version.get_version()
     print 'Written by Dominic May'
 
     global notif_q

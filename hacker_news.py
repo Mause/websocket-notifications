@@ -40,6 +40,7 @@ def multi_in(what, in_what):
         item = str(item.encode('ascii', 'replace'))
         if what in item:
             return True
+    # print 'heh'
     return False
 
 
@@ -47,27 +48,31 @@ while True:
     print 'fetching data... ',
     raw_data = urllib2.urlopen(stream_title).read()
     data = json.loads(raw_data)
-    if not local_compare:
-        cached_data.append(data)
+    # if not local_compare:
+    cached_data.append(data)
     if not first_time:
-        print 'retrieved'
+        print 'retrieved...',
 
     new_data = []
     # now we are going to check if there is anything new in the stream :D
 
     if not first_time:
-        previous_titles = get_value(cached_data[-1], "title")
+        previous_titles = get_value(cached_data[-2], "title")
         for submission in data:
                 if not multi_in(
                     str(submission["title"].encode('ascii', 'replace')),
                     map(str, previous_titles)):
                         new_data.append(submission)
 
-        print 'New submissions;', len(new_data)
-        pprint(get_value(new_data, "title"))
-        break
+        if len(new_data) != 0:
+            print 'new submissions;', len(new_data)
+            notification_stream.send_notif('New submissions; ' + str(len(new_data)))
+            pprint(get_value(new_data, "title"))
+        else:
+            print 'no new posts', len(new_data)
+        # break
     else:
-        print 'cached'
+        print 'cached', len(cached_data)
         first_time = False
 
     time.sleep(30)
