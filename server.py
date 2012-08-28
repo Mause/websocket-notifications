@@ -34,6 +34,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
 
 
+# original code for websockethandler taken from https://gist.github.com/3136208
 class WebSocketsHandler(SocketServer.StreamRequestHandler):
     global notif_q
     magic = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
@@ -126,10 +127,9 @@ def add_notif_to_q(notif, client):
     notif_q[client_dict[str(client)]].put(json.dumps(notif))
 
 
-def remove_item_from_dict(dictionary, item):
+def select_from_dict_but(dictionary, item):
     to_output = {}
     for item in dictionary.keys():
-        # item = item.encode('ascii')
         if item != 'client':
             to_output[item] = dictionary[item]
     return to_output
@@ -160,13 +160,13 @@ def handler(clientsocket, clientaddr):
                     print 'error_no_clients_connected'
 
                 elif str(data['client']) in client_dict.keys():
-                    add_notif_to_q(remove_item_from_dict(data, 'client'), str(data['client']))
+                    add_notif_to_q(select_from_dict_but(data, 'client'), str(data['client']))
                     clientsocket.send('success')
                     print 'success'
 
                 elif str(data['client']) == 'a':
                     for client in range(len(client_dict.keys())):
-                        add_notif_to_q(remove_item_from_dict(data, 'client'), client)
+                        add_notif_to_q(select_from_dict_but(data, 'client'), client)
                     clientsocket.send('success')
                     print 'success'
 
