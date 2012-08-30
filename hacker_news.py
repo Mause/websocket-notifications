@@ -7,10 +7,10 @@ except ImportError:
 import urllib2
 import time
 import libnotif
+import atexit
 from pprint import pprint
 
 stream_title = 'http://apify.heroku.com/api/hacker_news.json'
-
 
 notification_stream = libnotif.NotifConn('localhost', 50012)
 notification_stream.connect()
@@ -40,9 +40,13 @@ def multi_in(what, in_what):
         item = str(item.encode('ascii', 'replace'))
         if what in item:
             return True
-    # print 'heh'
     return False
 
+
+def disconnect():
+    if not notification_stream.connected:
+        notification_stream.disconnect()
+atexit.register(disconnect)
 
 while True:
     print 'fetching data... ',
@@ -70,7 +74,6 @@ while True:
             pprint(get_value(new_data, "title"))
         else:
             print 'no new posts', len(new_data)
-        # break
     else:
         print 'cached', len(cached_data)
         first_time = False
@@ -78,4 +81,4 @@ while True:
     time.sleep(30)
 
 
-notification_stream.disconnect()
+disconnect()
