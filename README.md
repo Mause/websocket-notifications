@@ -3,4 +3,6 @@ websocket-notifications
 
 Moderately simple websocket and python based webkit notifications pusher "system"
 
-* Add/write machine/programmatic interface/client library for submitting new notifications to clients :D
+ * Create sample script using this.
+ * Re-package front-end inside a Chrome app
+ * Keep said re-packaging compatible with simply running inside a normal webpage
