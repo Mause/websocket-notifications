@@ -17,14 +17,15 @@
 
 if (window.webkitNotifications && window.webkitNotifications.checkPermission() === 0) { // 0 is PERMISSION_ALLOWED
 
-
-    $('.debug_checkbox').click(function () {
-        if ($('#debugCheckbox').is(":checked")){
-            $('.debug_output').show();
-        } else {
-            $('.debug_output').hide();
-        }
-    });
+    if ($('.debug_checkbox').length !== 0){
+        $('.debug_checkbox').click(function () {
+            if ($('#debugCheckbox').is(":checked")){
+                $('.debug_output').show();
+            } else {
+                $('.debug_output').hide();
+            }
+        });
+    }
 
     // some preferences
     if (localStorage["notificationDuration"] === undefined) { localStorage["notificationDuration"] = 3000; }
@@ -35,18 +36,26 @@ if (window.webkitNotifications && window.webkitNotifications.checkPermission() =
     debug_divs = 0;
     append_debug_div = function(message){
         debug_divs += 1;
-        $('.debug_output').append(
-            '<div id="debug_output_div_'+(debug_divs)+'">'+message+'</div>');
-        $('#debug_output_div_' + debug_divs)[0].scrollIntoView( true );
+        if ($('.debug_output').length !== 0){
+            $('.debug_output').append(
+                '<div id="debug_output_div_'+(debug_divs)+'">'+message+'</div>');
+            $('#debug_output_div_' + debug_divs)[0].scrollIntoView( true );
+        }
     };
 
     // console.log('We have permission from the user to display notifications');
 
-    if (typeof(host) === undefined){
+    if (localStorage["host"] === undefined){
         host = 'localhost';
+        localStorage["host"] = host;
+    } else {
+        host = localStorage["host"];
     }
-    if (typeof(port) === undefined){
+    if (localStorage["port"] === undefined){
         port = 9999;
+        localStorage["port"] = port;
+    } else {
+        port = localStorage["port"];
     }
     ws = new WebSocket("ws://"+host+":"+port+"/");
     append_debug_div('Connecting...');
@@ -54,12 +63,12 @@ if (window.webkitNotifications && window.webkitNotifications.checkPermission() =
     ws.onopen = function() {
         append_debug_div('Port opened...!');
         ws.send("port_thoroughput_test;"+uuid.v4());
-        $('.status_blob').css('background-color', 'green');
+        if ($('.status_blob').length !== 0) $('.status_blob').css('background-color', 'green');
     };
     
     ws.onmessage = function (e) {
         if (e.data === 'pong') {
-            $('.status_blob').css('background-color', 'green');
+            if ($('.status_blob').length !== 0) $('.status_blob').css('background-color', 'green');
         } else if (e.data.substring(0,34) === "port_thoroughput_test_confirmation"){
             guid = e.data.substring(35,e.data.length);
             console.log('thoroughput test completed; '+guid);
@@ -115,17 +124,19 @@ if (window.webkitNotifications && window.webkitNotifications.checkPermission() =
     ping = function () {
         ws.send('ping');
         console.log("Pinging...");
-        $('.status_blob').css('background-color', 'red');
+        if ($('.status_blob') !== 0) $('.status_blob').css('background-color', 'red');
     };
     setInterval(function(){ping();}, ping_interval);
 
 
-    $('#ping_button').click(function (){ping();});
+    if ($('#ping_button') !== 0) $('#ping_button').click(function (){ping();});
 
 } else {
     console.log('We don\'t have permission from the user, requesting it now');
-    $('#requestPermissionButton').click(function () {window.webkitNotifications.requestPermission();});
-    $('#requestPermissionButton').show();
+    if ($('#requestPermissionButton') !== 0){
+        $('#requestPermissionButton').click(function () {window.webkitNotifications.requestPermission();});
+        $('#requestPermissionButton').show();
+    }
 }
 
 
