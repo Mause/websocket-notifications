@@ -1,0 +1,34 @@
+<!--
+  An option page for configuring notifications.
+
+  Copyright 2010 the Chromium Authors
+
+  Use of this source code is governed by a BSD-style license that can be found
+  in the "LICENSE" file.
+
+  Brian Kennish <bkennish@chromium.org>
+-->
+<!doctype html>
+<html>
+  <head>
+    <title>Notification Demo</title>
+    <link href="style.css" rel="stylesheet" type="text/css">
+    <script src="options.js"></script>
+  </head>
+  <body>
+    <h1>
+      <!-- <img src="64.png" alt="Toast"> -->
+      Notification Demo
+    </h1>
+    <h2>Options</h2>
+    <form id="options">
+      <label class="indent">
+        Display notifications for <input class="sane_width" name="notificationDuration"> seconds(s).
+      </label>
+      <br>
+      <label class="indent">
+        Send keep-alive every <input class="sane_width" name="pingInterval"> milliseconds.
+      </label>
+    </form>
+  </body>
+</html>

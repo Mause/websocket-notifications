@@ -1,0 +1,20 @@
+{
+  "name": "websocket-notifications",
+  "description": "A simple websocket based notifications client",
+  "manifest_version": 2,
+  "version": "0.1",
+  // "options_page": "options.html",
+  // "app": {
+    "background": {
+      "scripts": ["js/logic_and_communication.js"]
+    // }
+  },
+  "options_page": "options.html",
+  "permissions": [
+    // "experimental",
+    // "app.window",
+    "background",
+    "notifications"
+    ]//,
+  // "icons": { "16": "calculator-16.png", "128": "calculator-128.png" }
+}
