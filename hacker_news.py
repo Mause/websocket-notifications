@@ -19,11 +19,12 @@ notification_stream.send_notif('Hacker News submission stream connected')
 
 local_compare = True
 first_time = False
+cache_file = 'test_data.json'
 
 cached_data = []
 
 if local_compare:
-    fh = open('test_data.json', 'r')
+    fh = open(cache_file, 'r')
     cached_data.append(json.loads(fh.read()))
     fh.close()
 
@@ -48,11 +49,17 @@ def disconnect():
         notification_stream.disconnect()
 atexit.register(disconnect)
 
+
+def update_cache():
+    with open(cache_file, 'rU') as fh:
+        fh.write(json.dumps(data))
+atexit.register(update_cache)
+
+
 while True:
     print 'fetching data... ',
     raw_data = urllib2.urlopen(stream_title).read()
     data = json.loads(raw_data)
-    # if not local_compare:
     cached_data.append(data)
     if not first_time:
         print 'retrieved...',
@@ -79,6 +86,5 @@ while True:
         first_time = False
 
     time.sleep(30)
-
 
 disconnect()
