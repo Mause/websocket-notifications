@@ -61,17 +61,18 @@ class WebSocketsHandler(SocketServer.StreamRequestHandler):
                 all_good = self.read_next_message()
                 if not all_good:
                     break
-        print 'Clsoing this guy down...'
+        print 'Closing this guy down...'
 
     def read_next_message(self):
-        try:
+        # try:
+        if True:
             length = ord(self.rfile.read(2)[1]) & 127
-        except IndexError, e:
-            client_dict.pop(client_dict.index(self.client_guid))
-            print e
-            del notif_q[self.client_guid]
-            print 'Client disconnected...'
-            return False
+        # except IndexError, e:
+        #     client_dict.pop(client_dict.index(self.client_guid))
+        #     print e
+        #     del notif_q[self.client_guid]
+        #     print 'Client disconnected...'
+        #     return False
         if length == 126:
             length = struct.unpack(">H", self.rfile.read(2))[0]
         elif length == 127:
